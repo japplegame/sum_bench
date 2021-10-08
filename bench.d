@@ -1,10 +1,16 @@
 import algo;
 
 immutable functions = [
-	F("Basic", &basic),
+	F("basic", &basic),
 	F("Dark Hole", &dark_hole),
-	F("Dark Hole 2", &dark_hole_opti)
+	F("Dark Hole 2", &dark_hole_opti),
+	F("unrolled chunks 2", &unrolledChunks!2),
+	F("unrolled chunks 16", &unrolledChunks!16),
+	F("unrolled chunks 64", &unrolledChunks!64),
 ];
+
+enum maxStringLength  = 100;
+enum iterationsNumber = 100_000;
 
 import std.conv;
 import std.range;
@@ -35,7 +41,7 @@ auto bench(in F test) {
 	rndGen.seed(12345);
 
 	string genStr() {
-		return "1" ~ iota(0, uniform(1, 100)).map!(x => "01"[uniform(0, 2)]).array();
+		return "1" ~ iota(0, uniform(1, maxStringLength)).map!(x => "01"[uniform(0, 2)]).array();
 	}
 
 	auto toNum(string str) {
@@ -46,7 +52,7 @@ auto bench(in F test) {
 
 	Duration time;
 	auto watch = StopWatch(AutoStart.no);
-	foreach(n; 0..100_000) {
+	foreach(n; 0..iterationsNumber) {
 		auto a = genStr();
 		auto b = genStr();
 		string r;
@@ -71,7 +77,6 @@ void main() {
 	auto results = 
 		functions.map!((f) {
 			writef("%-20s", f.name);
-			stdout.flush();
 			try {
 				auto time = f.bench();
 				writeln("ok");
@@ -85,8 +90,6 @@ void main() {
 				return long.max;
 			}
 		}).array();
-
-	
 	auto indexes = new size_t[results.length];
 	results.makeIndex(indexes);
 	auto fastest = results[indexes[0]];
