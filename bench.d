@@ -97,9 +97,9 @@ void main() {
 		writeln("├──────────────────────┼───────────┼─────────┤");
 		writef("│ %-21s│", functions[i].name);
 		if(results[i] < long.max) {
-			writefln("%8.2fms │ %6s%% │", results[i] / 1000.0, results[i] * 100 / fastest);
+			writefln!"%8.2fms │ %6s%% │"(results[i] / 1000.0, results[i] * 100 / fastest);
 		} else {
-			writefln("     -     │    -    │");
+			writeln("     -     │    -    │");
 		}
 	}
 	writefln("└──────────────────────┴───────────┴─────────┘");
