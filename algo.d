@@ -105,3 +105,34 @@ string dark_hole_opti(string a, string b) {
     }
     return cast(immutable)res[1..$];
 }
+
+string unrolledChunks(size_t chunkSize)(string a, string b) {
+	import std.algorithm;
+
+	if(a.length > b.length) swap(a, b);
+	auto result = new char[b.length + 1];
+	result[0] = '1';
+
+	auto ca = &a[0] + a.length;
+	auto cb = &b[0] + b.length;
+	auto cr = &result[0] + result.length;
+	int r = 0;
+
+	foreach(i; 0..a.length / chunkSize) {
+		static foreach(j; 0..chunkSize) {
+			r = (*--ca + *--cb + (r >> 1)) & 3;
+			*--cr = '0' + (r & 1);
+		}
+	}
+
+	foreach(i; 0..a.length % chunkSize) {
+		r = (*--ca + *--cb + (r >> 1)) & 3;
+		*--cr = '0' + (r & 1);
+	}
+
+	foreach(i; 0..b.length - a.length) {
+		r = (*--cb + (r >> 1)) & 3;
+		*--cr = '0' + (r & 1);
+	}
+	return cast(string)(r >> 1 ? result : result[1..$]);
+}
