@@ -142,18 +142,23 @@ string unrolledChunks(size_t chunkSize)(string a, string b) {
 
 // @Serg_Gini
 string stackoverflow(string a, string b) {
-	import std.conv;
+	import std.algorithm;
+
 	string s = "";
 	int c = 0;
 	int i = cast(int)(a.length), j = cast(int)(b.length);
+	
+	auto result = new char[max(a.length, b.length) + 1];
+	auto r = result.length - 1;
+
 	i--; j--;
 	while ((i >= 0) || (j >= 0) || (c == 1)) {
 		c += i >= 0 ? a[i--] - '0' : 0;
 		c += j >= 0 ? b[j--] - '0' : 0;
-		s = to!char(c % 2 + '0') ~ s;
+		result[r--] = c % 2 + '0';
 		c /= 2;
 	}
-	return s;
+	return cast(string) result[r+1..$];
 }
 
 // @yaisis
