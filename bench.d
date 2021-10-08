@@ -7,10 +7,15 @@ immutable functions = [
 	F("unrolled chunks 2", &unrolledChunks!2),
 	F("unrolled chunks 16", &unrolledChunks!16),
 	F("unrolled chunks 64", &unrolledChunks!64),
+	F("stackoverflow", &stackoverflow),
+	F("basic2", &basic2)
 ];
 
-enum maxStringLength  = 100;
-enum iterationsNumber = 100_000;
+immutable benchSets = [
+	Set(100, 100_000), // max string length = 100, 100к iterations
+	Set(1000, 10_000),
+	Set(10_000, 1000),
+];
 
 import std.conv;
 import std.range;
@@ -26,6 +31,11 @@ struct F {
 	string function(string, string) fun;
 }
 
+struct Set {
+	int maxLength;
+	int iterations;
+}
+
 
 class BenchError : Exception {
 	string a, b, r;
@@ -37,11 +47,11 @@ class BenchError : Exception {
 	}
 }
 
-auto bench(in F test) {
+auto bench(in F test, int maxLength, int iterations) {
 	rndGen.seed(12345);
 
 	string genStr() {
-		return "1" ~ iota(0, uniform(1, maxStringLength)).map!(x => "01"[uniform(0, 2)]).array();
+		return "1" ~ iota(0, uniform(1, maxLength)).map!(x => "01"[uniform(0, 2)]).array();
 	}
 
 	auto toNum(string str) {
@@ -52,7 +62,7 @@ auto bench(in F test) {
 
 	Duration time;
 	auto watch = StopWatch(AutoStart.no);
-	foreach(n; 0..iterationsNumber) {
+	foreach(n; 0..iterations) {
 		auto a = genStr();
 		auto b = genStr();
 		string r;
@@ -65,45 +75,56 @@ auto bench(in F test) {
 		} catch(Throwable e) {
 			throw new BenchError("Bad function: " ~ e.msg, a, b, r);
 		}
-		if(toNum(r) != toNum(a) + toNum(b)) {
+		if(checksOn && toNum(r) != toNum(a) + toNum(b)) {
 			throw new BenchError("Wrong result", a, b, r);
 		}
 	}
 	return time;
 }
 
-void main() {
-	writefln("running benchmarks...");
-	auto results = 
-		functions.map!((f) {
-			writef("%-20s", f.name);
-			try {
-				auto time = f.bench();
-				writeln("ok");
-				return time.total!"usecs";
-			} catch(BenchError e) {
-				writefln("failed");
-				writefln("  %s", e.msg);
-				writefln("    a = %s", e.a);
-				writefln("    b = %s", e.b);
-				writefln("    r = %s", e.r);
-				return long.max;
-			}
-		}).array();
-	auto indexes = new size_t[results.length];
-	results.makeIndex(indexes);
-	auto fastest = results[indexes[0]];
+bool checksOn = false;
 
-	writefln("┌──────────────────────┬───────────┬─────────┐");
-	writefln("│         Name         │    Abs    │   Rel   │");
-	foreach(i; indexes) {
-		writeln("├──────────────────────┼───────────┼─────────┤");
-		writef("│ %-21s│", functions[i].name);
-		if(results[i] < long.max) {
-			writefln("%8.2fms │ %6s%% │", results[i] / 1000.0, results[i] * 100 / fastest);
-		} else {
-			writefln("     -     │    -    │");
-		}
+void main(string[] args) {
+	writefln("running benchmarks...");
+	if(args.length > 1 && args[1] == "--checks") {
+		writefln("checks on");
+		checksOn = true;
+	} else {
+		writefln("checks off");
 	}
-	writefln("└──────────────────────┴───────────┴─────────┘");
+
+	foreach(set; benchSets) {
+		auto results = 
+			functions.map!((f) {
+				try {
+					auto time = f.bench(set.maxLength, set.iterations);
+					return time.total!"usecs";
+				} catch(BenchError e) {
+					writefln("failed");
+					writefln("  %s", e.msg);
+					writefln("    a = %s", e.a);
+					writefln("    b = %s", e.b);
+					writefln("    r = %s", e.r);
+					return long.max;
+				}
+			}).array();
+		auto indexes = new size_t[results.length];
+		results.makeIndex(indexes);
+		auto fastest = results[indexes[0]];
+		writefln("══════════════════════════════════════════════");
+		writefln("max string length: %s", set.maxLength);
+		writefln("iterations:        %s", set.iterations);
+		writefln("┌──────────────────────┬───────────┬─────────┐");
+		writefln("│         Name         │    Abs    │   Rel   │");
+		foreach(i; indexes) {
+			writeln("├──────────────────────┼───────────┼─────────┤");
+			writef("│ %-21s│", functions[i].name);
+			if(results[i] < long.max) {
+				writefln("%8.2fms │ %6s%% │", results[i] / 1000.0, results[i] * 100 / fastest);
+			} else {
+				writefln("     -     │    -    │");
+			}
+		}
+		writefln("└──────────────────────┴───────────┴─────────┘\n");
+	}
 }
