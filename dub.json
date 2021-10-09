@@ -1,0 +1,12 @@
+{
+	"name": "sum_bench",
+	"targetType": "executable",
+	"buildTypes": {
+		"release": {
+			"dflags-ldc": ["-O3", "--boundscheck=off", "-mattr=+ssse3"]
+		}
+	},
+	"dependencies": {
+		"intel-intrinsics":  "~>1.0"
+	}
+}
