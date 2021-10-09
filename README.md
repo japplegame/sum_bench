@@ -11,6 +11,8 @@ $ dub run --compiler=ldc2 --build=release -- --checks
 ```sh
 $ dub run --compiler=ldc2 --build=release
 ```
+
+```sh
 ══════════════════════════════════════════════
 max string length: 100
 iterations:        100000
@@ -85,3 +87,4 @@ iterations:        1000
 ├──────────────────────┼───────────┼─────────┤
 │ basic                │ 2930.51ms │  77588% │
 └──────────────────────┴───────────┴─────────┘
+```
