@@ -1,4 +1,5 @@
 import algo;
+import draw;
 
 immutable functions = [
 	F("Dark Hole", &dark_hole),
@@ -115,17 +116,8 @@ void main(string[] args) {
 		writefln("══════════════════════════════════════════════");
 		writefln("max string length: %s", set.maxLength);
 		writefln("iterations:        %s", set.iterations);
-		writefln("┌──────────────────────┬───────────┬─────────┐");
-		writefln("│         Name         │    Abs    │   Rel   │");
 		foreach(i; indexes) {
-			writeln("├──────────────────────┼───────────┼─────────┤");
-			writef("│ %-21s│", functions[i].name);
-			if(results[i] < long.max) {
-				writefln("%8.2fms │ %6s%% │", results[i] / 1000.0, results[i] * 100 / fastest);
-			} else {
-				writefln("     -     │    -    │");
-			}
+			drawpercent(functions[i].name, results[i] / 1000.0, results[i] * 100 / fastest);
 		}
-		writefln("└──────────────────────┴───────────┴─────────┘\n");
 	}
 }

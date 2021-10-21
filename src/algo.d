@@ -214,7 +214,7 @@ string simdConvert(string a, string b) {
 	auto add = _mm_set1_epi8(0x80 - '1');
 	auto reverse = _mm_lddqu_si128(cast(__m128i*) reverse_a.ptr);
 	auto unpack = _mm_lddqu_si128(cast(__m128i*) unpack_a.ptr);
-	auto mask = _mm_set1_epi64(0x0102040810204080);
+	auto mask = _mm_set1_epi64(cast(__m64)0x0102040810204080);
 	auto allOne = _mm_set1_epi8('1');
 	auto allZero = _mm_setzero_si128();
 
